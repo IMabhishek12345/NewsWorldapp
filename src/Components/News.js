@@ -213,14 +213,17 @@ export class News extends Component {
     pageSize: 20,
     category: 'general'
   }
+  capitalizeFirstLetter=(string)=>{
+   return string.charAt(0).toUpperCase()+ string.slice(1);
+  }
   static propTypes ={
     country: PropTypes.string,
     pageSize: PropTypes.number,
     category: PropTypes.string
   }
 
-  constructor(){
-    super();
+  constructor(props){
+    super(props);
     console.log("Hello: I am a constructor");
     this.state={
       // articles:this.articles,
@@ -228,6 +231,7 @@ export class News extends Component {
       loading: false,
       page:1 
     } 
+   document.title=`News World-${this.capitalizeFirstLetter(this.props.category)}`;
   }
   async updateNews(){
     
@@ -294,8 +298,8 @@ export class News extends Component {
     return (
       
       <div className='container my-3'>
-      <h2 className='text-center'>NewsWorld-Top headlines</h2>
-        {this.state.loading && <Spinner/> }
+      <h2 className='text-center'>NewsWorld-Top {this.capitalizeFirstLetter(this.props.category)} headlines</h2>
+        {this.state.loading && <Spinner/>}
         <div className="row">
         {!this.state.loading && this.state.articles.map((ele)=>
         {return <div key={ele.url} className="col-md-4">
