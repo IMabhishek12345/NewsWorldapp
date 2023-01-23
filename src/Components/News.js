@@ -211,9 +211,10 @@ export class News extends Component {
   // ]
   static defaultProps = {
     country: 'in',
-    pageSize: 20,
+    pageSize: 10,
     category: 'general'
   }
+    
   capitalizeFirstLetter=(string)=>{
    return string.charAt(0).toUpperCase()+ string.slice(1);
   }
@@ -222,6 +223,7 @@ export class News extends Component {
     pageSize: PropTypes.number,
     category: PropTypes.string
   }
+  
 
   constructor(props){
     super(props);
@@ -230,21 +232,26 @@ export class News extends Component {
       // articles:this.articles,
       articles:[],
       loading: true,
-      page:1 
+      page:1,
+      totalResults:0
     } 
+      
    document.title=`News World-${this.capitalizeFirstLetter(this.props.category)}`;
+   
   }
-  async updateNews(){
-    
-    const url=`https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=a706019d7daa42208c6592eb478e09d9&page=${this.state.page}&pageSize=${this.props.pageSize}`;
-    let data= await fetch(url);
-    let parseData= await data.json();
-    console.log(parseData);
-    this.setState({articles: parseData.articles,
-                   totalResults:parseData.totalResults,
-                   loading:false});
-
-  }
+   async updateNews(){
+      this.props.setProgress(10); 
+      console.log("in update news");
+      const url=`https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=f6d510956413450a90dc348409e23482&page=${this.state.page}&pageSize=${this.props.pageSize}`;
+      let data= await fetch(url);
+      this.props.setProgress(50);
+      let parseData= await data.json();
+      console.log(parseData);
+      this.setState({articles: parseData.articles,
+              totalResults:parseData.totalResults,
+              loading:false});
+      this.props.setProgress(100); 
+    }
   async componentDidMount(){
     // console.log("cdm");
     // let url=`https://newsapi.org/v2/top-headlines?country=${this.props.country}&
@@ -256,8 +263,12 @@ export class News extends Component {
     // this.setState({articles: parseData.articles,
     //                totalResults:parseData.totalResults,
     //                loading:false});
+    
     this.updateNews();
+  
   }
+  
+ 
   handlePrevClick=async()=>{
     // console.log("Prev btn is pressed");
     // this.setState({
@@ -293,18 +304,26 @@ export class News extends Component {
     this.setState((page)=> ({page:this.state.page+1}));
     this.updateNews()
   }
+
   fetchMoreData=async()=>{
-    this.setState({page: this.state.page + 1});
-    const url=`https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=a706019d7daa42208c6592eb478e09d9&page=${this.state.page}&pageSize=${this.props.pageSize}`;
+    
+    const url=`https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=a706019d7daa42208c6592eb478e09d9&page=${this.state.page+1}&pageSize=${this.props.pageSize}`;
+    
+    this.setState((state)=>({page: this.state.page + 1}));
+    
     let data= await fetch(url);
     let parseData= await data.json();
-    console.log(parseData);
-    this.setState({articles: this.state.articles.concat(parseData.articles),
-    totalResults:parseData.totalResults});
-
+    //console.log(parseData);
+    this.setState(()=>({articles: this.state.articles.concat(parseData.articles),
+    totalResults:parseData.totalResults}));
+    
+    
+    
   }
   render() {
     console.log("render");
+    console.log(this.state.articles.length);
+    console.log(this.state.totalResults);
     return (
       
       <>
@@ -313,7 +332,7 @@ export class News extends Component {
         <InfiniteScroll
           dataLength={this.state.articles.length}
           next={this.fetchMoreData}
-          hasMore={this.state.articles.length!== this.totalResults}
+          hasMore={this.state.articles.length!== this.state.totalResults}
           loader={<Spinner/>}
         >
         <div className="container">
@@ -325,8 +344,8 @@ export class News extends Component {
             imgUrl={ele.urlToImage} newsUrl={ele.url} author={ele.author} 
             date={ele.publishedAt} source={ele.source.name}/>
            </div>
-        })
-        }
+          })
+          }
        </div>
        </div>
        </InfiniteScroll>
